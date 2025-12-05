@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore')
 source_failure=os.path.join(cd,'data','King Plains Pitch Bearing Crack List_2025_11_07.xlsx')
 channels=['awaken/kp.turbine.z01.b0','awaken/kp.turbine.z02.c0']
 source_info=os.path.join(cd,'data/KP_info.xlsx')
-sdate='2023-01-01 00:00:00'
+sdate='2020-01-01 00:00:00'
 
 _vars={}
 _vars['awaken/kp.turbine.z01.b0']=  {'power':'WTUR.W',
