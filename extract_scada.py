@@ -34,8 +34,8 @@ _vars['awaken/kp.turbine.z01.b0']=  {'power':'WTUR.W',
                                     'amb_temperature':'WMET.EnvTmp',
                                     'wd':'WMET.HorWdDir',
                                     'ws':'WMET.HorWdSpd',
-                                    'yaw':'WNAC.Dir',
-                                    'status':'WTUR.TurSt'}
+                                    'yaw':'WNAC.Dir'}
+
 _vars['awaken/kp.turbine.z02.c0']= {'power':'WTUR.W',
                                     'pitch1':'WROT.BlPthAngVal1',
                                     'pitch2':'WROT.BlPthAngVal2',
@@ -43,8 +43,7 @@ _vars['awaken/kp.turbine.z02.c0']= {'power':'WTUR.W',
                                     'amb_temperature':'WNAC.EnvTmp',
                                     'wd':'WMET.HorWdDir',
                                     'ws':'WMET.HorWdSpd',
-                                    'yaw':'WNAC.Dir',
-                                    'status':'WTUR.TurSt'}
+                                    'yaw':'WNAC.Dir'}
 
 stats=['Avg','Min','Max']
 

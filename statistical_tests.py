@@ -10,6 +10,7 @@ import warnings
 import pandas as pd
 import matplotlib
 from scipy.stats import mannwhitneyu
+import utils
 import xarray as xr
 import glob
 matplotlib.rcParams['font.family'] = 'serif'
@@ -41,6 +42,7 @@ info=pd.read_excel(source_info).set_index('Turbine #')
 
 #zeroing
 Data={}
+Data_all={}
 Data_healthy={}
 Data_faulty={}
 
@@ -85,8 +87,14 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
         #flag and combine data
         healthy=Data[turbine_id].time<date_fail-np.timedelta64(period,'D')
         faulty=(Data[turbine_id].time>=date_fail-np.timedelta64(period,'D'))*(Data[turbine_id].time<=date_fail)
+        Data[turbine_id]['failed']=faulty
         ctr=0
         for v in Data[turbine_id].data_vars:
+            x=Data[turbine_id][v]
+            if v in Data_healthy.keys():
+                Data_all[v]=np.append(Data_all[v],x)
+            else:
+                Data_all[v]=x
             x=Data[turbine_id][v].where(healthy)
             if v in Data_healthy.keys():
                 Data_healthy[v]=np.append(Data_healthy[v],x[~np.isnan(x)])
@@ -112,6 +120,17 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
                 plt.savefig(os.path.join(cd,'figures',turbine_id+'_sample',f'{ctr:02.0f}.{v}.png'))
                 plt.close()
             ctr+=1
+            
+            
+#RF
+X=np.zeros((len(Data_all['power_avg']),len(Data_all.keys())))
+i=0
+for v in Data_all.keys():
+    X[:,i]=Data_all[v]
+    i+=1
+# importance,importance_std,y_pred,test_mae,train_mae,best_params=utils.RF_feature_selector()          
+            
+            
             
 #%% Plots
 
