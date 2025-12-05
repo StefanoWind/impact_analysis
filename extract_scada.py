@@ -117,7 +117,7 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
                         if f'{_vars[channel][v]}_10m_{s}' in Data.data_vars:
                             Data_sel[f'{v}_{s.lower()}']=Data[f'{_vars[channel][v]}_10m_{s}']
                         else:
-                            print('Could not find {_vars[channel][v]}_10m_{s} in {f}')
+                            print(f'Could not find {_vars[channel][v]}_10m_{s} in {f}')
                           
                 datasets.append(Data_sel)
                 print(f'{f} appended')
