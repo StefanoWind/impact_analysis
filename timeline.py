@@ -23,8 +23,8 @@ headers='yyyy mm dd HH MM SS bow_lon bow_lat stern_lon stern_lat'
 username='sletizia'
 password='pass_DAP1506@'
 channels=['awaken/kp.turbine.z01.b0','awaken/kp.turbine.z02.b0','awaken/kp.turbine.z02.c0','awaken/kp.turbine.z03.b0','awaken/kp.turbine.z03.c0']
-file_types={'awaken/kp.turbine.z01.b0':'nc','awaken/kp.turbine.z02.b0':'nc','awaken/kp.turbine.z03.b0':'nc','awaken/kp.turbine.z03.c0':'nc'}
-ext1s={'awaken/kp.turbine.z01.b0':'wt001','awaken/kp.turbine.z02.b0':'wt001','awaken/kp.turbine.z03.b0':'h5','awaken/kp.turbine.z03.c0':'h5'}
+file_types={'awaken/kp.turbine.z01.b0':'nc','awaken/kp.turbine.z02.b0':'nc','awaken/kp.turbine.z02.c0':'nc','awaken/kp.turbine.z03.b0':'nc','awaken/kp.turbine.z03.c0':'nc'}
+ext1s={'awaken/kp.turbine.z01.b0':'wt001','awaken/kp.turbine.z02.b0':'wt001','awaken/kp.turbine.z02.c0':'wt001','awaken/kp.turbine.z03.b0':'h5','awaken/kp.turbine.z03.c0':'h5'}
 sdate='20200101000000'#start date for data search
 edate='20251031000000'#end date for data search
 

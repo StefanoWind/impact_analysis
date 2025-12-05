@@ -19,18 +19,21 @@ plt.close('all')
 warnings.filterwarnings('ignore')
 
 #%% Inputs
-channel='kp.turbine.z03.b0'
+channel='kp.turbine.z02.c0'
 time_var={'kp.turbine.z01.b0':'WTUR.DateTime',
           'kp.turbine.z02.b0':'date',
+          'kp.turbine.z02.c0':'WTUR.DateTime',
           'kp.turbine.z03.b0':'time',
           'kp.turbine.z03.c0':'time'}
 date_fmt={'kp.turbine.z01.b0':'%H:%M',
           'kp.turbine.z02.b0':'%H:%M',
+          'kp.turbine.z02.c0':'%H:%M',
           'kp.turbine.z03.b0':'%H:%M',
           'kp.turbine.z03.c0':'%H:%M'}
 
 sub_var={'kp.turbine.z01.b0':'',
           'kp.turbine.z02.b0':'',
+          'kp.turbine.z02.c0':'',
           'kp.turbine.z03.b0':'',
           'kp.turbine.z03.c0':['stat','mean']}
 

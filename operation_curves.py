@@ -26,19 +26,18 @@ source=os.path.join(cd,'data/awaken/kp.turbine.z01.b0')
 source_info=os.path.join(cd,'data/KP_info.xlsx')
 sdate='2022-12-01T00:00:00'
 edate='2023-03-04T00:00:00'
-turbine_id='H05'
-#
-# var_x='WMET.HorWdSpd_10m_Avg'
-var_x='WROT.BlPthSpt_10m_Avg'
-vars_y=['WROT.BlPthAngVal1_10m_Avg','WROT.BlPthAngVal2_10m_Avg','WROT.BlPthAngVal3_10m_Avg']
-        # 'WROT.BlPthSpt_10m_Avg','WTUR.W_10m_Avg']
+turbine_id='A04'
+
+var_x='WMET.HorWdSpd_10m_Avg'
+vars_y=['WROT.BlPthAngVal1_10m_Avg','WROT.BlPthAngVal2_10m_Avg','WROT.BlPthAngVal3_10m_Avg',
+        'WROT.BlPthSpt_10m_Avg','WTUR.W_10m_Avg']
 
 bins={'WMET.HorWdSpd_10m_Avg':np.arange(0,25.1,0.5),
       'WROT.BlPthAngVal1_10m_Avg':np.arange(-5,91),
         'WROT.BlPthAngVal2_10m_Avg':np.arange(-5,91),
         'WROT.BlPthAngVal3_10m_Avg':np.arange(-5,91),
-        'WROT.BlPthSpt_10m_Avg':np.arange(500,2000,10),
-        'WTUR.W_10m_Avg':np.arange(0,1.1,0.05)*2800}
+        'WROT.BlPthSpt_10m_Avg':np.arange(-20,1601,10),
+        'WTUR.W_10m_Avg':np.arange(0,2801,10)}
 #qc
 min_ws=0
 max_ws=25
@@ -82,6 +81,8 @@ v=[]
 time=np.array([],dtype='datetime64')
 datasets = [] 
 
+os.makedirs(os.path.join(cd,'figures',turbine_id),exist_ok=True)
+
 #%% Main
 
 #concatenate data
@@ -92,18 +93,29 @@ for f in files[sel]:
         print(f'Could not open {f}')
         continue
     
+    if var_x not in Data.data_vars:
+        print(f'Could not find {var_x} in {f}')
+        continue
     Data=Data.rename({'WTUR.DateTime':'time'})
     
     qc_flag=(Data['WMET.HorWdSpd_10m_Avg']>min_ws)*(Data['WMET.HorWdSpd_10m_Avg']<max_ws)
     Data=Data.where(qc_flag)
     
-    datasets.append(Data[[var_x]+vars_y])
+    Data_sel=xr.Dataset()
+    Data_sel[var_x]=Data[var_x]
+    for v in vars_y:
+        if v in Data.data_vars:
+            Data_sel[v]=Data[v]
+        else:
+            print(f'Could not find {v} in {f}')
+              
+    datasets.append(Data_sel)
    
     print(f'{f} done.')
     
 SCD=xr.concat(datasets,dim='time')
 
-#caclulate curves
+#calculate curves
 N={}
 for v in vars_y:
     N[v]=stats.binned_statistic_2d(SCD[var_x].values, 
@@ -119,9 +131,11 @@ for v in vars_y:
     pc=plt.pcolor(mid(bins[var_x]),mid(bins[v]),np.log10(N[v].T/N[v].max()),cmap='inferno',vmin=-3,vmax=0)
     plt.xlabel(labels[var_x])
     plt.ylabel(labels[v])
-    plt.title(f'Turbine {turbine_id}')
+    plt.title(f'Turbine {turbine_id} \n {sdate.replace("T"," ")} - {edate.replace("T"," ")}')
     plt.grid()
     cbar =plt.colorbar(pc,label='Normalized count')
     cbar.set_ticks(np.arange(-3,1))
     cbar.set_ticklabels([r'$10^{'+str(i)+'}$' for i in np.arange(-3,1)])
     plt.tight_layout()
+    plt.savefig(os.path.join(cd,'figures',turbine_id,f'{var_x}.{v}.png'))
+    plt.close()
