@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Visualize loads long term trends
+Extract and merge 10-minute scada channels of failed turbines
 """
 import os
 cd=os.getcwd()
-import sys
 import numpy as np
 from matplotlib import pyplot as plt
 import warnings
@@ -22,7 +21,6 @@ plt.close('all')
 warnings.filterwarnings('ignore')
 
 #%% Inputs
-
 source_failure=os.path.join(cd,'data','King Plains Pitch Bearing Crack List_2025_11_07.xlsx')
 channels=['awaken/kp.turbine.z01.b0','awaken/kp.turbine.z02.c0']
 source_info=os.path.join(cd,'data/KP_info.xlsx')
@@ -69,7 +67,7 @@ def dates_from_files(files):
 with open(os.path.join(cd,'configs/config.yaml'), 'r') as fid:
     config = yaml.safe_load(fid)
     
-failure=pd.read_excel(source_failure).iloc[:2,:]
+failure=pd.read_excel(source_failure)
 info=pd.read_excel(source_info).set_index('Turbine #')
 
 a2e = DAP('wdh.energy.gov',confirm_downloads=False)
@@ -85,7 +83,6 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
     for channel in channels:
     
         #download
-        
         _filter = {
             'Dataset': channel,
             'date_time': {
@@ -95,9 +92,9 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
             'file_type':'nc',
             'ext1': turbine_flag
         }
-        
+        print(f'Downloading files for {turbine_flag} in {channel}')
         os.makedirs(os.path.join(cd,'data',channel),exist_ok=True)
-        # a2e.download_with_order(_filter, path=os.path.join(cd,'data',channel),replace=False)
+        a2e.download_with_order(_filter, path=os.path.join(cd,'data',channel),replace=False)
         
         #stack
         datasets=[]
@@ -119,6 +116,8 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
                     for s in stats:
                         if f'{_vars[channel][v]}_10m_{s}' in Data.data_vars:
                             Data_sel[f'{v}_{s.lower()}']=Data[f'{_vars[channel][v]}_10m_{s}']
+                        else:
+                            print('Could not find {_vars[channel][v]}_10m_{s} in {f}')
                           
                 datasets.append(Data_sel)
                 print(f'{f} appended')
