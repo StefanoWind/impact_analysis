@@ -34,7 +34,7 @@ max_power=2800*1.02#[kW] max power
 pvalue=0.05#pvalue of Wilconcox test
 
 #graphics 
-id_plot='B08'
+id_plot='B08x'
 
 #%% Initialization
 failure=pd.read_excel(source_failure)
@@ -125,12 +125,16 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
 #RF
 X=np.zeros((len(Data_all['power_avg']),len(Data_all.keys())))
 i=0
+vars_plot=[]
 for v in Data_all.keys():
-    X[:,i]=Data_all[v]
-    i+=1
-# importance,importance_std,y_pred,test_mae,train_mae,best_params=utils.RF_feature_selector()          
-            
-            
+    if 'status' not in v and 'failed' not in v and 'amb_temperature_avg' not in v:
+        vars_plot.append(v)
+        X[:,i]=Data_all[v]
+        i+=1
+X=X[:,:i]
+y=Data_all['failed'] 
+
+importance,importance_std,y_pred,test_mae,train_mae,best_params,y_test,predicted_test=utils.RF_feature_selector(X[:,:-5],y)          
             
 #%% Plots
 
@@ -187,10 +191,15 @@ for v in Data_healthy.keys():
             plt.ylabel('Probability')
         ax.set_yticklabels([])
         
-        
         plt.grid()
         ctr+=1
     except:
         pass
         
+plt.tight_layout()
+
+plt.figure()
+plt.bar(vars_plot,importance,color='Gray')
+plt.errorbar(np.arange(len(vars_plot)),importance,importance_std, color='k',linestyle='none',capsize=5)
+plt.xticks(rotation=90)
 plt.tight_layout()

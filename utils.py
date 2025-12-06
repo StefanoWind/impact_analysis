@@ -65,4 +65,4 @@ def RF_feature_selector(X,y,test_size=0.8,n_search=30,n_repeats=10,limits={}):
     importance=result.importances_mean
     importance_std=result.importances_std
     
-    return importance,importance_std,y_pred,test_mae,train_mae,best_params
+    return importance,importance_std,y_pred,test_mae,train_mae,best_params,y_test,predicted_test
