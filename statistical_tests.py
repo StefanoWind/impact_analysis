@@ -25,6 +25,7 @@ sources=[os.path.join(cd,'data','awaken/kp.turbine.z01.d0'),
          os.path.join(cd,'data','awaken/kp.turbine.z02.d0')]
 source_info=os.path.join(cd,'data/KP_info.xlsx')
 source_failure=os.path.join(cd,'data','King Plains Pitch Bearing Crack List_2025_11_07.xlsx')
+var_excl=['failed','status','amb_temperature']
 
 period=30#[days] days prior to failure
 min_ws=10#[m/s] min wind speed
@@ -32,9 +33,10 @@ max_ws=25#[m/s] max wind speed
 min_power=2800*0.01#[kW] min power
 max_power=2800*1.02#[kW] max power
 pvalue=0.05#pvalue of Wilconcox test
+thresh=0.05#classification threshold
 
 #graphics 
-id_plot='B08x'
+id_plot='B08'
 
 #%% Initialization
 failure=pd.read_excel(source_failure)
@@ -90,16 +92,19 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
         Data[turbine_id]['failed']=faulty
         ctr=0
         for v in Data[turbine_id].data_vars:
+            
             x=Data[turbine_id][v]
             if v in Data_healthy.keys():
                 Data_all[v]=np.append(Data_all[v],x)
             else:
                 Data_all[v]=x
+                
             x=Data[turbine_id][v].where(healthy)
             if v in Data_healthy.keys():
                 Data_healthy[v]=np.append(Data_healthy[v],x[~np.isnan(x)])
             else:
                 Data_healthy[v]=x[~np.isnan(x)]
+                
             x=Data[turbine_id][v].where(faulty)
             if v in Data_faulty.keys():
                 Data_faulty[v]=np.append(Data_faulty[v],x[~np.isnan(x)])
@@ -121,21 +126,48 @@ for failed,shutdown in zip(failure['Substation Name - Turbine'],failure['Shutdow
                 plt.close()
             ctr+=1
             
-            
 #RF
 X=np.zeros((len(Data_all['power_avg']),len(Data_all.keys())))
 i=0
 vars_plot=[]
 for v in Data_all.keys():
-    if 'status' not in v and 'failed' not in v and 'amb_temperature_avg' not in v:
+    stack=True
+    for ve in var_excl:
+        if ve in v:
+            stack=False
+    if stack:
         vars_plot.append(v)
         X[:,i]=Data_all[v]
         i+=1
 X=X[:,:i]
 y=Data_all['failed'] 
 
-importance,importance_std,y_pred,test_mae,train_mae,best_params,y_test,predicted_test=utils.RF_feature_selector(X[:,:-5],y)          
-            
+importance,importance_std,y_pred,test_mae,train_mae,best_params,y_test,predicted_test=utils.RF_feature_selector(X,y)          
+    
+#ROC curve
+fpr=[]    
+tpr=[]    
+thresh_test=np.arange(0,1.01,0.001)
+for t in thresh_test:
+    fp=(y_test==0)*(predicted_test>t)
+    tp=(y_test==1)*(predicted_test>t)
+    fn=(y_test==1)*(predicted_test<=t)
+    tn=(y_test==0)*(predicted_test<=t)
+              
+    tpr=np.append(tpr,np.sum(tp)/np.sum(tp+fn))
+    fpr=np.append(fpr,np.sum(fp)/np.sum(fp+tn))
+auc=-np.trapezoid(tpr,fpr)
+
+#confusion matrix
+fp=(y_test==0)*(predicted_test>thresh)
+tp=(y_test==1)*(predicted_test>thresh)
+fn=(y_test==1)*(predicted_test<=thresh)
+tn=(y_test==0)*(predicted_test<=thresh)
+print(f'FP: {np.sum(fp)}')
+print(f'TP: {np.sum(tp)}')
+print(f'FN: {np.sum(fn)}')
+print(f'TN: {np.sum(tn)}')
+
 #%% Plots
 
 #test on the variable
@@ -198,8 +230,22 @@ for v in Data_healthy.keys():
         
 plt.tight_layout()
 
+#plot feature importance
 plt.figure()
 plt.bar(vars_plot,importance,color='Gray')
 plt.errorbar(np.arange(len(vars_plot)),importance,importance_std, color='k',linestyle='none',capsize=5)
 plt.xticks(rotation=90)
 plt.tight_layout()
+plt.grid()
+plt.ylabel('RF importance')
+
+#plot ROC curve
+plt.figure()
+sc=plt.scatter(fpr,tpr,s=1,c=thresh_test,vmin=0,vmax=1,cmap='hot')
+plt.plot(fpr[thresh_test==thresh],tpr[thresh_test==thresh],'og',mfc='none')
+plt.plot([0,1],[0,1],'--r')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title(f'AUC={auc:.3f}')
+plt.grid()
+plt.colorbar(sc,label='Classification threshold')
